@@ -1,0 +1,177 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject PlayStudios.Leaderboard.Frontend.Services.LeaderboardApiClient Api
+
+@* 
+  Home.razor – main demo page for the Leaderboard frontend.
+  Responsibilities:
+   • Provide input form for PlayerId and Score.
+   • Buttons for Submit, Get Leaderboard, Reset, and Seed test data.
+   • Displays response snapshot (player rank/score) + tables of Top and Nearby players.
+   • Handles basic validation (non-empty playerId, non-negative score).
+   • Uses LeaderboardApiClient service to call backend API endpoints.
+   • Updates local state (resp, message) and re-renders UI automatically.
+*@
+
+<h2>Demo</h2>
+
+
+<div class="grid">
+    <div>
+        <label class="label">Player ID</label>
+        <input class="input" @bind="playerId" placeholder="Player1 for example" />
+    </div>
+    <div>
+        <label class="label">Score</label>
+        <input class="input" type="number" inputmode="numeric" @bind="scoreText" placeholder="120" />
+    </div>
+    <div class="btns">
+        <button class="btn primary" @onclick="SubmitAsync" disabled="@busy">🚀 Submit</button>
+        <button class="btn dark" @onclick="GetBoardAsync" disabled="@busy">📊 Get Leaderboard</button>
+        <button class="btn ghost" @onclick="ResetAsync" disabled="@busy">🧹 Reset</button>
+        <button class="btn btn-seed" @onclick="SeedRandomPlayersAsync" disabled="@busy">➕ Random 10 Players</button>
+    </div>
+</div>
+
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="note">@message</div>
+}
+
+
+@if (resp is not null)
+{
+    <div class="grid3">
+        <div>
+            <div class="muted small">Player</div>
+            <div class="badge">@resp.PlayerId</div>
+        </div>
+        <div>
+            <div class="muted small">Score</div>
+            <div class="badge">@resp.PlayerScore</div>
+        </div>
+        <div>
+            <div class="muted small">Rank</div>
+            <div class="badge">@resp.PlayerRank</div>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <div>
+            <h3>🏆 Top Players</h3>
+            @if (resp.TopPlayers?.Count > 0)
+            {
+                <table class="table">
+                    <thead><tr><th>#</th><th>Player</th><th>Score</th><th>Rank</th></tr></thead>
+                    <tbody>
+                        @foreach (var (p, i) in resp.TopPlayers.Select((p, i) => (p, i)))
+                        {
+                            <tr><td>@(i + 1)</td><td>@p.PlayerId</td><td>@p.Score</td><td>@p.Rank</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+
+                <div class="muted">(trống)</div>
+                ;
+            }
+        </div>
+        <div>
+            <h3>👥 Nearby Players</h3>
+            @if (resp.NearbyPlayers?.Count > 0)
+            {
+                <table class="table">
+                    <thead><tr><th>#</th><th>Player</th><th>Score</th><th>Rank</th></tr></thead>
+                    <tbody>
+                        @foreach (var (p, i) in resp.NearbyPlayers.Select((p, i) => (p, i)))
+                        {
+                            <tr><td>@(i + 1)</td><td>@p.PlayerId</td><td>@p.Score</td><td>@p.Rank</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+
+                <div class="muted">(Empty)</div>
+                ;
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+    string playerId = string.Empty;
+    string scoreText = string.Empty;
+    bool busy = false;
+    string? message;
+    LeaderboardResponse? resp;
+
+    async Task SeedRandomPlayersAsync()
+    {
+        message = null; busy = true;
+        var rnd = new Random();
+        try
+        {
+            for (int i = 1; i <= 10; i++)
+            {
+                var id = $"Player{i}";
+                var score = rnd.Next(0, 1000); // random từ 0..999
+
+                resp = await Api.SubmitAsync(id, score);
+                message = "✅ Insert 10 random Players Successful. You can search: Player1, Player2... for example!";
+            }
+
+        }
+        catch (ApiError ex)
+        {
+            Console.WriteLine($"Error inserting: {ex.Message}");
+        }
+        finally { busy = false; }
+    }
+
+    async Task SubmitAsync()
+    {
+        message = null; busy = true;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(playerId)) { message = "⚠️ playerId is required"; return; }
+            if (!long.TryParse(scoreText, out var score) || score < 0) { message = "⚠️ Score should > 0"; return; }
+            resp = await Api.SubmitAsync(playerId.Trim(), score);
+            message = "✅ Submit OK";
+        }
+        catch (ApiError ex) { message = $"❌ {ex.Message}"; }
+        finally { busy = false; }
+    }
+
+
+    async Task GetBoardAsync()
+    {
+        message = null; busy = true;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(playerId)) { message = "⚠️ PlayerId is required"; return; }
+            resp = await Api.GetBoardAsync(playerId.Trim());
+            message = "✅ Get OK";
+        }
+        catch (ApiError ex) { message = $"❌ {ex.Message}"; }
+        finally { busy = false; }
+    }
+
+
+    async Task ResetAsync()
+    {
+        message = null; busy = true;
+        try
+        {
+            await Api.ResetAsync();
+            resp = null; message = "🧹 Reset successful!";
+        }
+        catch (ApiError ex) { message = $"❌ {ex.Message}"; }
+        finally { busy = false; }
+    }
+}

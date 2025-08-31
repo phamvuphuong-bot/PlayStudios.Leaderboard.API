@@ -1,0 +1,6 @@
+@PlayStudios.Leaderboard.API_HostAddress = http://localhost:5284
+
+# GET {{PlayStudios.Leaderboard.API_HostAddress}}/weatherforecast/
+# Accept: application/json
+
+###
