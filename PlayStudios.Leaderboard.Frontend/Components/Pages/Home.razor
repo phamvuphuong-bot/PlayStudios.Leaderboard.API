@@ -43,6 +43,8 @@
 @if (resp is not null)
 {
     <div class="grid3">
+    @if (resp.TopPlayers?.Count > 0)
+    {
         <div>
             <div class="muted small">Player</div>
             <div class="badge">@resp.PlayerId</div>
@@ -55,8 +57,16 @@
             <div class="muted small">Rank</div>
             <div class="badge">@resp.PlayerRank</div>
         </div>
-    </div>
+        }
+        else
+        {
 
+            <div class="muted">(Empty)</div>
+            ;
+        }
+        
+    </div>
+    <hr />
     <div class="grid2">
         <div>
             <h3>🏆 Top Players</h3>
@@ -75,7 +85,7 @@
             else
             {
 
-                <div class="muted">(trống)</div>
+                <div class="muted">(Empty)</div>
                 ;
             }
         </div>
@@ -156,7 +166,7 @@
         {
             if (string.IsNullOrWhiteSpace(playerId)) { message = "⚠️ PlayerId is required"; return; }
             resp = await Api.GetBoardAsync(playerId.Trim());
-            message = "✅ Get OK";
+            message = "✅ " + resp.ResultString;
         }
         catch (ApiError ex) { message = $"❌ {ex.Message}"; }
         finally { busy = false; }

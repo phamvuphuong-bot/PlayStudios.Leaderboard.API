@@ -82,6 +82,13 @@ namespace PlayStudios.Leaderboard.API.Services
                 .ToList();
             }
 
+            string resultString = rank > 0 ? "Success" : "Player not found";
+
+            if(rank < 0)
+            {
+                top.Clear();
+                nearby.Clear();
+            }
 
             return new LeaderboardResponse
             {
@@ -89,7 +96,8 @@ namespace PlayStudios.Leaderboard.API.Services
                 PlayerRank = rank,
                 PlayerScore = score,
                 TopPlayers = top,
-                NearbyPlayers = nearby
+                NearbyPlayers = nearby,
+                ResultString = resultString
             };
         }
     }

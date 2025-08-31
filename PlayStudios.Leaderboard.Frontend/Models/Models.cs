@@ -35,6 +35,7 @@
     /// </remarks>
     public class LeaderboardResponse
     {
+        public string ResultString { get; set; } = string.Empty;
         public string PlayerId { get; set; } = string.Empty;
         public long PlayerRank { get; set; }
         public long PlayerScore { get; set; }

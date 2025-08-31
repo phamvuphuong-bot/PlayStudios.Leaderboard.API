@@ -13,6 +13,7 @@
     /// </remarks>
     public class LeaderboardResponse
     {
+        public string ResultString { get; set; } = default!;
         /// <summary>Unique identifier of the player for whom this response is generated.</summary>
         public string PlayerId { get; set; } = default!;
 
@@ -28,5 +29,7 @@
 
         /// <summary>Players ranked near the requested player, for context.</summary>
         public List<LeaderboardPlayerDto> NearbyPlayers { get; set; } = new();
+
+       
     }
 }
